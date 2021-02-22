@@ -81,8 +81,10 @@ def main():
                         print(move.get_chess_notation())
                         game_state.make_move(move)
                         move_made = True
-                    selected_square = ()
-                    player_clicks = []
+                        selected_square = ()
+                        player_clicks = []
+                    else:
+                        player_clicks = [selected_square]
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_z:
