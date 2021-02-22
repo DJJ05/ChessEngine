@@ -12,6 +12,14 @@ class GameState:
             ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
             ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR']
         ]
+        self.move_mapping = {
+            'P': self.get_pawn_moves,
+            'R': self.get_rook_moves,
+            'N': self.get_knight_moves,
+            'B': self.get_bishop_moves,
+            'Q': self.get_queen_moves,
+            'K': self.get_king_moves
+        }
         self.white_to_move = True
         self.move_log = []
 
@@ -38,16 +46,53 @@ class GameState:
                 turn = self.board[row][column][0]
                 if (turn == 'w' and self.white_to_move) or (turn == 'b' and not self.white_to_move):
                     piece = self.board[row][column][1]
-                    if piece == 'P':
-                        self.get_pawn_moves(row, column, moves)
-                    elif piece == 'R':
-                        self.get_rook_moves(row, column, moves)
+                    self.move_mapping[piece](row, column, moves)
         return moves
 
     def get_pawn_moves(self, row, column, moves):
-        ...
+        if self.white_to_move:
+            if row - 1 >= 0:
+                if self.board[row-1][column] == '--':
+                    moves.append(Move((row, column), (row - 1, column), self.board))
+                    if row == 6 and self.board[row-2][column] == '--':
+                        moves.append(Move((row, column), (row - 2, column), self.board))
+
+                if column - 1 >= 0:
+                    if self.board[row-1][column-1][0] == 'b':
+                        moves.append(Move((row, column), (row - 1, column - 1), self.board))
+
+                if column + 1 <= 7:
+                    if self.board[row-1][column+1][0] == 'b':
+                        moves.append(Move((row, column), (row - 1, column + 1), self.board))
+
+        else:
+            if len(self.board) > row + 1:
+                if self.board[row+1][column] == '--':
+                    moves.append(Move((row, column), (row + 1, column), self.board))
+                    if row == 1 and self.board[row+2][column] == '--':
+                        moves.append(Move((row, column), (row + 2, column), self.board))
+
+                if column - 1 >= 0:
+                    if self.board[row+1][column-1][0] == 'w':
+                        moves.append(Move((row, column), (row + 1, column - 1), self.board))
+
+                if column + 1 <= 7:
+                    if self.board[row+1][column+1][0] == 'w':
+                        moves.append(Move((row, column), (row + 1, column + 1), self.board))
 
     def get_rook_moves(self, row, column, moves):
+        ...
+
+    def get_knight_moves(self, row, column, moves):
+        ...
+
+    def get_bishop_moves(self, row, column, moves):
+        ...
+
+    def get_queen_moves(self, row, column, moves):
+        ...
+
+    def get_king_moves(self, row, column, moves):
         ...
 
 
