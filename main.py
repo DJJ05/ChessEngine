@@ -47,6 +47,7 @@ def main():
     game_state = engine.GameState()
     valid_moves = game_state.get_valid_moves()
     move_made = False
+    undo_loop = False
     load_images()
     running = True
     selected_square = ()
@@ -61,10 +62,15 @@ def main():
                 location = pygame.mouse.get_pos()
                 column = location[0]//SQ_SIZE
                 row = location[1]//SQ_SIZE
+                piece = game_state.board[row][column]
 
-                if selected_square == (row, column):
+                if (len(player_clicks) == 0) and ((piece == '--' or piece[0] == 'w' and not game_state.white_to_move) or (piece[0] == 'b' and game_state.white_to_move)):
+                    ...
+
+                elif selected_square == (row, column):
                     selected_square = ()
                     player_clicks = []
+
                 else:
                     selected_square = (row, column)
                     player_clicks.append(selected_square)
@@ -78,14 +84,22 @@ def main():
                     selected_square = ()
                     player_clicks = []
 
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_z:
+                    undo_loop = False
+                    move_made = True
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_z:
-                    game_state.undo_move()
+                    undo_loop = True
                     move_made = True
 
         if move_made:
             valid_moves = game_state.get_valid_moves()
             move_made = False
+
+        if undo_loop:
+            game_state.undo_move()
 
         draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)

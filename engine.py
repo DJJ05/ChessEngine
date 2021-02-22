@@ -52,42 +52,97 @@ class GameState:
     def get_pawn_moves(self, row, column, moves):
         if self.white_to_move:
             if row - 1 >= 0:
-                if self.board[row-1][column] == '--':
+                if self.board[row - 1][column] == '--':
                     moves.append(Move((row, column), (row - 1, column), self.board))
-                    if row == 6 and self.board[row-2][column] == '--':
+                    if row == 6 and self.board[row - 2][column] == '--':
                         moves.append(Move((row, column), (row - 2, column), self.board))
 
                 if column - 1 >= 0:
-                    if self.board[row-1][column-1][0] == 'b':
+                    if self.board[row - 1][column - 1][0] == 'b':
                         moves.append(Move((row, column), (row - 1, column - 1), self.board))
 
                 if column + 1 <= 7:
-                    if self.board[row-1][column+1][0] == 'b':
+                    if self.board[row - 1][column + 1][0] == 'b':
                         moves.append(Move((row, column), (row - 1, column + 1), self.board))
 
         else:
             if len(self.board) > row + 1:
-                if self.board[row+1][column] == '--':
+                if self.board[row + 1][column] == '--':
                     moves.append(Move((row, column), (row + 1, column), self.board))
-                    if row == 1 and self.board[row+2][column] == '--':
+                    if row == 1 and self.board[row + 2][column] == '--':
                         moves.append(Move((row, column), (row + 2, column), self.board))
 
                 if column - 1 >= 0:
-                    if self.board[row+1][column-1][0] == 'w':
+                    if self.board[row + 1][column - 1][0] == 'w':
                         moves.append(Move((row, column), (row + 1, column - 1), self.board))
 
                 if column + 1 <= 7:
-                    if self.board[row+1][column+1][0] == 'w':
+                    if self.board[row + 1][column + 1][0] == 'w':
                         moves.append(Move((row, column), (row + 1, column + 1), self.board))
 
     def get_rook_moves(self, row, column, moves):
-        ...
+        directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
+        enemy_color = 'b' if self.white_to_move else 'w'
+
+        for direction in directions:
+            for i in range(1, 8):
+                end_row = row + direction[0] * i
+                end_column = column + direction[1] * i
+
+                if 0 <= end_row < 8 and 0 <= end_column < 8:
+                    end_piece = self.board[end_row][end_column]
+
+                    if end_piece == '--':
+                        moves.append(Move((row, column), (end_row, end_column), self.board))
+
+                    elif end_piece[0] == enemy_color:
+                        moves.append(Move((row, column), (end_row, end_column), self.board))
+                        break
+
+                    else:
+                        break
+
+                else:
+                    break
 
     def get_knight_moves(self, row, column, moves):
-        ...
+        knight_moves = ((-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
+        ally_color = 'w' if self.white_to_move else 'b'
+
+        for move in knight_moves:
+            end_row = row + move[0]
+            end_column = column + move[1]
+
+            if 0 <= end_row < 8 and 0 <= end_column < 8:
+                end_piece = self.board[end_row][end_column]
+
+                if end_piece[0] != ally_color:
+                    moves.append(Move((row, column), (end_row, end_column), self.board))
 
     def get_bishop_moves(self, row, column, moves):
-        ...
+        directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
+        enemy_color = 'b' if self.white_to_move else 'w'
+
+        for direction in directions:
+            for i in range(1, 8):
+                end_row = row + direction[0] * i
+                end_column = column + direction[1] * i
+
+                if 0 <= end_row < 8 and 0 <= end_column < 8:
+                    end_piece = self.board[end_row][end_column]
+
+                    if end_piece == '--':
+                        moves.append(Move((row, column), (end_row, end_column), self.board))
+
+                    elif end_piece[0] == enemy_color:
+                        moves.append(Move((row, column), (end_row, end_column), self.board))
+                        break
+
+                    else:
+                        break
+
+                else:
+                    break
 
     def get_queen_moves(self, row, column, moves):
         ...
