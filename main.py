@@ -71,15 +71,22 @@ def main():
 
                 if len(player_clicks) == 2:
                     move = engine.Move(player_clicks[0], player_clicks[1], game_state.board)
-                    print(move.get_chess_notation())
-                    game_state.make_move(move)
+                    if move in valid_moves:
+                        print(move.get_chess_notation())
+                        game_state.make_move(move)
+                        move_made = True
                     selected_square = ()
                     player_clicks = []
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_z:
                     game_state.undo_move()
-        
+                    move_made = True
+
+        if move_made:
+            valid_moves = game_state.get_valid_moves()
+            move_made = False
+
         draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
         pygame.display.flip()

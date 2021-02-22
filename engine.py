@@ -42,6 +42,7 @@ class GameState:
                         self.get_pawn_moves(row, column, moves)
                     elif piece == 'R':
                         self.get_rook_moves(row, column, moves)
+        return moves
 
     def get_pawn_moves(self, row, column, moves):
         ...
@@ -64,6 +65,12 @@ class Move:
         self.files_to_columns = {"a": 0, "b": 1, "c": 2, "d": 3,
                                  "e": 4, "f": 5, "g": 6, "h": 7}
         self.columns_to_files = {v: k for k, v in self.files_to_columns.items()}
+        self.move_id = self.start_row * 1000 + self.start_column * 100 + self.end_row * 10 + self.end_column
+
+    def __eq__(self, other):
+        if isinstance(other, Move):
+            return self.move_id == other.move_id
+        return False
 
     def get_chess_notation(self):
         return self.get_rank_file(self.start_row, self.start_column) + self.get_rank_file(self.end_row, self.end_column)
