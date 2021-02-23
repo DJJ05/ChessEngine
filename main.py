@@ -3,7 +3,7 @@
 import pygame
 import engine
 
-WIDTH = HEIGHT = 712
+WIDTH = HEIGHT = 512
 DIMENSION = 8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
@@ -81,14 +81,18 @@ def main():
 
                 if len(player_clicks) == 2:
                     move = engine.Move(player_clicks[0], player_clicks[1], game_state.board)
-                    if move in valid_moves:
-                        if LOG_MOVES:
-                            print(f'MOVED: {move.get_chess_notation()}')
-                        game_state.make_move(move)
-                        move_made = True
-                        selected_square = ()
-                        player_clicks = []
-                    else:
+
+                    for i in range(len(valid_moves)):
+                        if move == valid_moves[i]:
+                            if LOG_MOVES:
+                                print(f'MOVED: {move.get_chess_notation()}')
+
+                            game_state.make_move(valid_moves[i])
+                            move_made = True
+                            selected_square = ()
+                            player_clicks = []
+
+                    if not move_made:
                         player_clicks = [selected_square]
 
             elif event.type == pygame.KEYUP:
@@ -101,6 +105,10 @@ def main():
                 if event.key == pygame.K_z:
                     undo_loop = True
                     move_made = False
+
+                elif event.key == pygame.K_s:
+                    pygame.image.save(screen, 'capture.jpeg')
+                    print('Captured screen.')
 
         if move_made:
             valid_moves = game_state.get_valid_moves()

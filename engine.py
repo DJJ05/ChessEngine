@@ -26,6 +26,7 @@ class GameState:
         self.black_king_location = (0, 4)
         self.checkmate = False
         self.stalemate = False
+        self.enpassant_possible = ()
 
     def make_move(self, move):
         self.board[move.start_row][move.start_column] = '--'
@@ -39,6 +40,17 @@ class GameState:
 
         self.white_to_move = not self.white_to_move
 
+        if move.is_pawn_promotion:
+            self.board[move.end_row][move.end_column] = move.piece_moved[0] + 'Q'
+
+        if move.is_enpassant_move:
+            self.board[move.start_row][move.end_column] = '--'
+
+        if move.piece_moved[1] == 'P' and abs(move.start_row - move.end_row) == 2:
+            self.enpassant_possible = ((move.start_row + move.end_row) // 2, move.start_column)
+        else:
+            self.enpassant_possible = ()
+
     def undo_move(self):
         if len(self.move_log) != 0:
             move = self.move_log.pop()
@@ -50,9 +62,18 @@ class GameState:
             elif move.piece_moved == 'bK':
                 self.black_king_location = (move.start_row, move.start_column)
 
+            if move.is_enpassant_move:
+                self.board[move.end_row][move.end_column] = '--'
+                self.board[move.start_row][move.end_column] = move.piece_captured
+                self.enpassant_possible = (move.end_row, move.end_column)
+
+            if move.piece_moved[1] == 'P' and abs(move.start_row - move.end_row) == 2:
+                self.enpassant_possible = ()
+
             self.white_to_move = not self.white_to_move
 
     def get_valid_moves(self):
+        temp_enpassant_possible = self.enpassant_possible
         moves = self.get_possible_moves()
 
         for move in moves[::-1]:
@@ -74,6 +95,7 @@ class GameState:
             self.stalemate = False
             self.checkmate = False
 
+        self.enpassant_possible = temp_enpassant_possible
         return moves
 
     def in_check(self):
@@ -111,10 +133,14 @@ class GameState:
                 if column - 1 >= 0:
                     if self.board[row - 1][column - 1][0] == 'b':
                         moves.append(Move((row, column), (row - 1, column - 1), self.board))
+                    elif (row - 1, column - 1) == self.enpassant_possible:
+                        moves.append(Move((row, column), (row - 1, column - 1), self.board, is_enpassant_move=True))
 
                 if column + 1 <= 7:
                     if self.board[row - 1][column + 1][0] == 'b':
                         moves.append(Move((row, column), (row - 1, column + 1), self.board))
+                    elif (row - 1, column + 1) == self.enpassant_possible:
+                        moves.append(Move((row, column), (row - 1, column + 1), self.board, is_enpassant_move=True))
 
         else:
             if len(self.board) > row + 1:
@@ -126,10 +152,14 @@ class GameState:
                 if column - 1 >= 0:
                     if self.board[row + 1][column - 1][0] == 'w':
                         moves.append(Move((row, column), (row + 1, column - 1), self.board))
+                    elif (row + 1, column - 1) == self.enpassant_possible:
+                        moves.append(Move((row, column), (row + 1, column - 1), self.board, is_enpassant_move=True))
 
                 if column + 1 <= 7:
                     if self.board[row + 1][column + 1][0] == 'w':
                         moves.append(Move((row, column), (row + 1, column + 1), self.board))
+                    elif (row + 1, column + 1) == self.enpassant_possible:
+                        moves.append(Move((row, column), (row + 1, column + 1), self.board, is_enpassant_move=True))
 
     def get_rook_moves(self, row, column, moves):
         directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
@@ -215,19 +245,32 @@ class GameState:
 
 
 class Move:
-    def __init__(self, start_square, end_square, board):
+    def __init__(self, start_square, end_square, board, is_enpassant_move=False, is_castle_move=False):
         self.start_row = start_square[0]
         self.start_column = start_square[1]
         self.end_row = end_square[0]
         self.end_column = end_square[1]
+
         self.piece_moved = board[self.start_row][self.start_column]
         self.piece_captured = board[self.end_row][self.end_column]
+
         self.ranks_to_rows = {"1": 7, "2": 6, "3": 5, "4": 4,
                               "5": 3, "6": 2, "7": 1, "8": 0}
         self.rows_to_ranks = {v: k for k, v in self.ranks_to_rows.items()}
         self.files_to_columns = {"a": 0, "b": 1, "c": 2, "d": 3,
                                  "e": 4, "f": 5, "g": 6, "h": 7}
         self.columns_to_files = {v: k for k, v in self.files_to_columns.items()}
+
+        self.is_pawn_promotion = False
+        self.is_enpassant_move = is_enpassant_move
+        self.is_castle_move = is_castle_move
+
+        if self.is_enpassant_move:
+            self.piece_captured = 'wP' if self.piece_moved == 'bP' else 'bP'
+
+        if (self.piece_moved == 'wP' and self.end_row == 0) or (self.piece_moved == 'bP' and self.end_row == 7):
+            self.is_pawn_promotion = True
+
         self.move_id = self.start_row * 1000 + self.start_column * 100 + self.end_row * 10 + self.end_column
 
     def __eq__(self, other):
