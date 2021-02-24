@@ -50,12 +50,10 @@ def main():
     game_state = engine.GameState()
     valid_moves = game_state.get_valid_moves()
     move_made = False
-    undo_loop = False
     load_images()
     running = True
     selected_square = ()
     player_clicks = []
-    undo_count = 0
 
     while running:
         for event in pygame.event.get():
@@ -95,15 +93,10 @@ def main():
                     if not move_made:
                         player_clicks = [selected_square]
 
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_z:
-                    undo_loop = False
-                    move_made = False
-                    undo_count = 0
-
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_z:
-                    undo_loop = True
+                    game_state.undo_move()
+                    valid_moves = game_state.get_valid_moves()
                     move_made = False
 
                 elif event.key == pygame.K_s:
@@ -113,7 +106,11 @@ def main():
         if move_made:
             valid_moves = game_state.get_valid_moves()
 
-            if game_state.checkmate and game_state.square_under_attack(game_state.white_king_location[0], game_state.white_king_location[1]):
+            if game_state.in_check() and not game_state.checkmate and game_state.square_under_attack(game_state.white_king_location[0], game_state.white_king_location[1]):
+                print('White is now in check.')
+            elif game_state.in_check() and not game_state.checkmate:
+                print('Black is now in check.')
+            elif game_state.checkmate and game_state.square_under_attack(game_state.white_king_location[0], game_state.white_king_location[1]):
                 print('White has been checkmated. Black wins.')
             elif game_state.checkmate:
                 print('Black has been checkmated. White wins.')
@@ -121,14 +118,6 @@ def main():
                 print('The game has been stalemated and it is drawn.')
 
             move_made = False
-
-        if undo_loop:
-            if undo_count != 0:
-                pygame.time.wait(200)
-            else:
-                undo_count = 1
-            game_state.undo_move()
-            valid_moves = game_state.get_valid_moves()
 
         draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
