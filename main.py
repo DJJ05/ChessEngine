@@ -22,8 +22,8 @@ def draw_board(screen):
 
     for row in range(DIMENSION):
         for column in range(DIMENSION):
-            color = colors[((row+column) % 2)]
-            pygame.draw.rect(screen, color, pygame.Rect(column*SQ_SIZE, row*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+            color = colors[((row + column) % 2)]
+            pygame.draw.rect(screen, color, pygame.Rect(column * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 
 def draw_pieces(screen, board):
@@ -31,11 +31,32 @@ def draw_pieces(screen, board):
         for column in range(DIMENSION):
             piece = board[row][column]
             if piece != '--':
-                screen.blit(IMAGES[piece], pygame.Rect(column*SQ_SIZE, row*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+                screen.blit(IMAGES[piece], pygame.Rect(column * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 
-def draw_game_state(screen, game_state):
+def highlight_squares(screen, game_state, valid_moves, selected_square):
+    if selected_square != ():
+        row, column = selected_square
+
+        if game_state.board[row][column][0] == ('w' if game_state.white_to_move else 'b'):
+            shape = pygame.Surface((SQ_SIZE, SQ_SIZE))
+            shape.set_alpha(100)
+            shape.fill(pygame.Color('blue'))
+            screen.blit(shape, (column * SQ_SIZE, row * SQ_SIZE))
+
+            for move in valid_moves:
+                if move.start_row == row and move.start_column == column:
+                    if game_state.board[move.end_row][move.end_column] != '--':
+                        shape.fill(pygame.Color('red'))
+                        screen.blit(shape, (move.end_column * SQ_SIZE, move.end_row * SQ_SIZE))
+                    else:
+                        shape.fill(pygame.Color('yellow'))
+                        screen.blit(shape, (move.end_column * SQ_SIZE, move.end_row * SQ_SIZE))
+
+
+def draw_game_state(screen, game_state, valid_moves, selected_square):
     draw_board(screen)
+    highlight_squares(screen, game_state, valid_moves, selected_square)
     draw_pieces(screen, game_state.board)
 
 
@@ -62,11 +83,13 @@ def main():
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 location = pygame.mouse.get_pos()
-                column = location[0]//SQ_SIZE
-                row = location[1]//SQ_SIZE
+                column = location[0] // SQ_SIZE
+                row = location[1] // SQ_SIZE
                 piece = game_state.board[row][column]
 
-                if (len(player_clicks) == 0) and ((piece == '--' or piece[0] == 'w' and not game_state.white_to_move) or (piece[0] == 'b' and game_state.white_to_move)):
+                if (len(player_clicks) == 0) and (
+                        (piece == '--' or piece[0] == 'w' and not game_state.white_to_move) or (
+                        piece[0] == 'b' and game_state.white_to_move)):
                     ...
 
                 elif selected_square == (row, column):
@@ -106,11 +129,13 @@ def main():
         if move_made:
             valid_moves = game_state.get_valid_moves()
 
-            if game_state.in_check() and not game_state.checkmate and game_state.square_under_attack(game_state.white_king_location[0], game_state.white_king_location[1]):
+            if game_state.in_check() and not game_state.checkmate and game_state.square_under_attack(
+                    game_state.white_king_location[0], game_state.white_king_location[1]):
                 print('White is now in check.')
             elif game_state.in_check() and not game_state.checkmate:
                 print('Black is now in check.')
-            elif game_state.checkmate and game_state.square_under_attack(game_state.white_king_location[0], game_state.white_king_location[1]):
+            elif game_state.checkmate and game_state.square_under_attack(game_state.white_king_location[0],
+                                                                         game_state.white_king_location[1]):
                 print('White has been checkmated. Black wins.')
             elif game_state.checkmate:
                 print('Black has been checkmated. White wins.')
@@ -119,7 +144,7 @@ def main():
 
             move_made = False
 
-        draw_game_state(screen, game_state)
+        draw_game_state(screen, game_state, valid_moves, selected_square)
         clock.tick(MAX_FPS)
         pygame.display.flip()
 
