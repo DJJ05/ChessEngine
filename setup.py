@@ -38,3 +38,12 @@ setup(
              ]
     },
 )
+
+"""
+rm -rf build dist
+python3 setup.py py2app
+./dist/ChessEngine.app/Contents/MacOS/ChessEngine
+
+cd dist
+open -a ChessEngine.app
+"""
